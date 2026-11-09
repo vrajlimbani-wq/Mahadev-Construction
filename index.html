@@ -3,225 +3,654 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ઓટો કેડ & ડ્રોઈંગ જનરેટર</title>
+  <title>મહાદેવ કન્સ્ટ્રક્શન એડવાન્સ ડ્રોઈંગ સિસ્ટમ</title>
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#1e293b">
+  <meta name="theme-color" content="#09111e">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
-    body { background: #0f172a; color: #f8fafc; padding: 15px; }
-    .header { text-align: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #334155; }
-    .card { background: #1e293b; border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
-    label { font-size: 13px; color: #94a3b8; display: block; margin-bottom: 4px; }
-    input, select { width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: #fff; font-size: 14px; }
-    button { background: #2563eb; color: #fff; border: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; width: 100%; cursor: pointer; margin-top: 10px; }
-    button:hover { background: #1d4ed8; }
-    .tabs { display: flex; gap: 10px; margin-bottom: 10px; }
-    .tab-btn { background: #334155; flex: 1; padding: 8px; border-radius: 6px; text-align: center; cursor: pointer; font-size: 14px; }
-    .tab-btn.active { background: #2563eb; }
-    .canvas-container { background: #ffffff; border-radius: 8px; overflow: hidden; display: flex; justify-content: center; align-items: center; min-height: 320px; position: relative; }
+    body { background: #070d18; color: #f1f5f9; padding: 10px; font-size: 13px; }
+    .header { text-align: center; padding: 8px 0; border-bottom: 2px solid #1e293b; margin-bottom: 10px; }
+    .header h1 { font-size: 16px; color: #38bdf8; font-weight: 700; }
+
+    /* મુખ્ય નેવિગેશન ટેબ્સ */
+    .module-nav { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 10px; }
+    .nav-btn { background: #131f33; border: 1px solid #1e293b; padding: 8px 4px; border-radius: 6px; text-align: center; font-size: 11px; font-weight: 600; cursor: pointer; color: #94a3b8; }
+    .nav-btn.active { background: #0284c7; color: #fff; border-color: #38bdf8; }
+
+    .card { background: #0f192b; border: 1px solid #1e293b; border-radius: 8px; padding: 12px; margin-bottom: 10px; }
+    .section-title { font-size: 13px; font-weight: bold; color: #38bdf8; margin-bottom: 8px; border-left: 3px solid #0284c7; padding-left: 6px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+    .form-group { margin-bottom: 6px; }
+    label { font-size: 11px; color: #94a3b8; display: block; margin-bottom: 2px; }
+    input, select { width: 100%; padding: 6px 8px; border-radius: 5px; border: 1px solid #334155; background: #070e1b; color: #f8fafc; font-size: 12px; }
+
+    /* કેનવાસ કન્ટેનર */
+    .view-toggle { display: flex; gap: 6px; margin-bottom: 8px; }
+    .v-btn { flex: 1; padding: 6px; background: #1e293b; border: 1px solid #334155; color: #cbd5e1; border-radius: 4px; font-size: 11px; text-align: center; cursor: pointer; }
+    .v-btn.active { background: #2563eb; color: #fff; font-weight: bold; }
+    .canvas-box { background: #ffffff; border-radius: 6px; overflow: hidden; display: flex; justify-content: center; align-items: center; min-height: 280px; position: relative; }
     canvas { display: block; }
-    .info { font-size: 13px; color: #38bdf8; margin-top: 8px; text-align: center; }
+
+    /* સ્ક્વેરફૂટ અને ક્વોન્ટિટી રિપોર્ટ */
+    .report-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 11px; }
+    .report-table th, .report-table td { border: 1px solid #1e293b; padding: 5px 6px; text-align: left; }
+    .report-table th { background: #172540; color: #38bdf8; }
+    .report-table tr:nth-child(even) { background: #0a1324; }
+    .badge-total { background: #0369a1; color: #fff; padding: 8px; border-radius: 5px; font-size: 12px; font-weight: bold; text-align: center; margin-top: 8px; }
+    .btn-action { background: #0284c7; color: #fff; border: none; padding: 9px; border-radius: 5px; font-weight: bold; width: 100%; cursor: pointer; margin-top: 8px; font-size: 12px; }
   </style>
 </head>
 <body>
 
   <div class="header">
-    <h2>ઓટો મેઝરમેન્ટ ડ્રોઈંગ ટૂલ</h2>
+    <h1>મહાદેવ કન્સ્ટ્રક્શન એન્ડ ફેબ્રિકેશન</h1>
+    <div style="font-size: 10px; color: #64748b;">ઓટો-ડ્રોઈંગ • સ્ટીલ લટક • સેન્ટ્રિંગ • કમ્પ્લીટ પ્લાનર</div>
   </div>
 
-  <div class="card">
-    <div class="grid">
+  <!-- મોડ્યુલ મેનુ -->
+  <div class="module-nav">
+    <div class="nav-btn active" id="btn-slab" onclick="selectModule('slab')">૧. સ્લેબ, બીમ & સ્ટીલ</div>
+    <div class="nav-btn" id="btn-wall" onclick="selectModule('wall')">૨. ચણતર, છજ્જા & બારી</div>
+    <div class="nav-btn" id="btn-tiles" onclick="selectModule('tiles')">૩. અમદાવાદ ટાઇલ્સ</div>
+  </div>
+
+  <!-- ૧. સ્લેબ, કોલમ અને બીમ મોડ્યુલ -->
+  <div id="mod-slab" class="card">
+    <div class="section-title">સ્લેબ ડિઝાઇન અને શેપ</div>
+    <div class="grid-3 form-group">
       <div>
-        <label>લંબાઈ (Length)</label>
-        <input type="number" id="len" value="20" step="0.5" oninput="draw()">
+        <label>સ્લેબ આકાર</label>
+        <select id="sl_shape" onchange="toggleSlabInputs(); render();">
+          <option value="rect">લંબચોરસ / ચોરસ</option>
+          <option value="l_shape">L શેપ (L-Shape)</option>
+          <option value="round">રાઉન્ડ (ગોળાકાર)</option>
+        </select>
       </div>
       <div>
-        <label>પહોળાઈ (Width)</label>
-        <input type="number" id="wid" value="15" step="0.5" oninput="draw()">
+        <label>મુખ્ય લંબાઈ (ફૂટ)</label>
+        <input type="number" id="sl_len" value="30" oninput="render()">
       </div>
       <div>
-        <label>ઊંચાઈ (Height)</label>
-        <input type="number" id="hgt" value="10" step="0.5" oninput="draw()">
+        <label>મુખ્ય પહોળાઈ (ફૂટ)</label>
+        <input type="number" id="sl_wid" value="20" oninput="render()">
+      </div>
+    </div>
+
+    <!-- L શેપ માટે વધારાના ઇનપુટ -->
+    <div id="l_inputs" class="grid-2 form-group" style="display:none; background:#070f1e; padding:6px; border-radius:4px;">
+      <div>
+        <label>L કટ લંબાઈ (ફૂટ)</label>
+        <input type="number" id="sl_l_cut_len" value="12" oninput="render()">
       </div>
       <div>
-        <label>દિવાલ જાડાઈ (Wall Thk)</label>
-        <input type="number" id="wall" value="0.75" step="0.25" oninput="draw()">
+        <label>L કટ પહોળાઈ (ફૂટ)</label>
+        <input type="number" id="sl_l_cut_wid" value="10" oninput="render()">
+      </div>
+    </div>
+
+    <div class="grid-3 form-group">
+      <div>
+        <label>સ્લેબ જાડાઈ (ઇંચ)</label>
+        <input type="number" id="sl_thk" value="5" step="0.5" oninput="render()">
       </div>
       <div>
-        <label>યુનિટ (Unit)</label>
-        <select id="unit" onchange="draw()">
-          <option value="ફૂટ">ફૂટ (Feet)</option>
-          <option value="મીટર">મીટર (Meter)</option>
-          <option value="ઇંચ">ઇંચ (Inch)</option>
+        <label>સ્લેબ ઊંચાઈ/લેવલ (ફૂટ)</label>
+        <input type="number" id="sl_hgt" value="10.5" oninput="render()">
+      </div>
+      <div>
+        <label>સેન્ટ્રિંગ અને ટેકા</label>
+        <select id="sl_shuttering" onchange="render()">
+          <option value="iron">લોખંડ ફાર્મા + લાકડા ટેકા</option>
+          <option value="jack">વુડન પ્લાય + જેક ટેકા</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="section-title" style="margin-top:10px;">સ્ટીલ જાળી, કોલમ અને બીમ લટક</div>
+    <div class="grid-3 form-group">
+      <div>
+        <label>મેઈન રોડ (આડા)</label>
+        <select id="sl_bar_main" onchange="render()">
+          <option value="8">8 mm</option>
+          <option value="10" selected>10 mm</option>
+          <option value="12">12 mm</option>
+        </select>
+      </div>
+      <div>
+        <label>ડિસ્ટ્રિ. રોડ (ઊભા)</label>
+        <select id="sl_bar_dist" onchange="render()">
+          <option value="8" selected>8 mm</option>
+          <option value="10">10 mm</option>
+        </select>
+      </div>
+      <div>
+        <label>જાળી સ્પેસિંગ (ઇંચ)</label>
+        <select id="sl_spacing" onchange="render()">
+          <option value="5">5" × 5"</option>
+          <option value="6" selected>6" × 6"</option>
+          <option value="7">7" × 7"</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grid-3 form-group">
+      <div>
+        <label>કોલમ સાઈઝ (ઇંચ)</label>
+        <select id="col_size" onchange="render()">
+          <option value="9x9">9" × 9"</option>
+          <option value="9x12" selected>9" × 12"</option>
+          <option value="9x15">9" × 15"</option>
+          <option value="12x12">12" × 12"</option>
+        </select>
+      </div>
+      <div>
+        <label>કોલમ સ્ટીલ mm</label>
+        <select id="col_bar" onchange="render()">
+          <option value="12">12 mm</option>
+          <option value="16" selected>16 mm</option>
+          <option value="20">20 mm</option>
+        </select>
+      </div>
+      <div>
+        <label>બીમ લટક સાઈઝ</label>
+        <select id="bm_size" onchange="render()">
+          <option value="9x12">9" × 12" (લટક 7")</option>
+          <option value="9x15" selected>9" × 15" (લટક 10")</option>
+          <option value="9x18">9" × 18" (લટક 13")</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grid-2 form-group">
+      <div>
+        <label>બીમ મેઈન સ્ટીલ</label>
+        <select id="bm_bar" onchange="render()">
+          <option value="12">12 mm</option>
+          <option value="16" selected>16 mm</option>
+          <option value="20">20 mm</option>
+        </select>
+      </div>
+      <div>
+        <label>લેપિંગ લંબાઈ (સૂત્ર: 50D)</label>
+        <input type="text" id="lap_info" value="ઓટોમેટિક ગણાશે" readonly style="color:#38bdf8;">
+      </div>
+    </div>
+  </div>
+
+  <!-- ૨. ચણતર, પ્લાસ્ટર, બારી-બારણાં & છજ્જા મોડ્યુલ -->
+  <div id="mod-wall" class="card" style="display:none;">
+    <div class="section-title">દિવાલ ચણતર અને પ્લાસ્ટર માપ</div>
+    <div class="grid-3 form-group">
+      <div>
+        <label>દિવાલ લંબાઈ (ફૂટ)</label>
+        <input type="number" id="wl_len" value="40" oninput="render()">
+      </div>
+      <div>
+        <label>દિવાલ ઊંચાઈ (ફૂટ)</label>
+        <input type="number" id="wl_hgt" value="10" oninput="render()">
+      </div>
+      <div>
+        <label>ચણતર પ્રકાર</label>
+        <select id="wl_brick_type" onchange="render()">
+          <option value="single">સિંગલ ઈંટ (૪.૫" પાર્ટીશન)</option>
+          <option value="double" selected>ડબલ ઈંટ (૯" મેઈન વોલ)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grid-2 form-group">
+      <div>
+        <label>પ્લાસ્ટર પ્રકાર</label>
+        <select id="wl_plaster_type" onchange="render()">
+          <option value="single">એક બાજુ પ્લાસ્ટર</option>
+          <option value="double" selected>બંને બાજુ પ્લાસ્ટર</option>
+        </select>
+      </div>
+      <div>
+        <label>પ્લાસ્ટર જાડાઈ (mm)</label>
+        <select id="wl_plaster_thk" onchange="render()">
+          <option value="12">12 mm (અંદર)</option>
+          <option value="15">15 mm</option>
+          <option value="20" selected>20 mm (બહાર રફ/ડબલ કોટ)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="section-title" style="margin-top:10px;">બારી, દરવાજા અને છજ્જા (ઓટો કપાત)</div>
+    <div class="grid-3 form-group">
+      <div>
+        <label>દરવાજા માપ (નંગ × W × H)</label>
+        <input type="text" id="dr_spec" value="2 x 3.5 x 7" title="સંખ્યા x લંબાઈ x ઊંચાઈ" oninput="render()">
+      </div>
+      <div>
+        <label>બારી માપ (નંગ × W × H)</label>
+        <input type="text" id="wd_spec" value="3 x 4 x 4" title="સંખ્યા x લંબાઈ x ઊંચાઈ" oninput="render()">
+      </div>
+      <div>
+        <label>છાજલી/છજ્જા બહાર પ્રોજેક્શન</label>
+        <select id="ch_proj" onchange="render()">
+          <option value="1.5">1.5 ફૂટ (18 ઇંચ)</option>
+          <option value="2" selected>2.0 ફૂટ (24 ઇંચ)</option>
+          <option value="2.5">2.5 ફૂટ (30 ઇંચ)</option>
         </select>
       </div>
     </div>
   </div>
 
-  <div class="tabs">
-    <div class="tab-btn active" id="tab2d" onclick="switchTab('2d')">2D ફ્લોર પ્લાન (ટોપ વ્યૂ)</div>
-    <div class="tab-btn" id="tab3d" onclick="switchTab('3d')">3D આઇસોમેટ્રિક વ્યૂ</div>
+  <!-- ૩. ટાઇલ્સ (અમદાવાદ સાઇઝ માર્કેટ) -->
+  <div id="mod-tiles" class="card" style="display:none;">
+    <div class="section-title">અમદાવાદ માર્કેટ સ્ટાન્ડર્ડ ટાઇલ્સ સાઇઝ</div>
+    <div class="grid-2 form-group">
+      <div>
+        <label>રૂમ / એરિયા લંબાઈ (ફૂટ)</label>
+        <input type="number" id="tl_len" value="20" oninput="render()">
+      </div>
+      <div>
+        <label>રૂમ / એરિયા પહોળાઈ (ફૂટ)</label>
+        <input type="number" id="tl_wid" value="15" oninput="render()">
+      </div>
+    </div>
+
+    <div class="grid-2 form-group">
+      <div>
+        <label>ટાઇલ્સ સિલેક્શન (અમદાવાદ વેરાયટી)</label>
+        <select id="tl_size" onchange="render()">
+          <optgroup label="ફ્લોરિંગ (GVT / PGVT / વિટ્રિફાઇડ)">
+            <option value="2x2" data-sq="4" data-box="4">2 × 2 ફૂટ (600×600 mm) - 4 pcs/Box</option>
+            <option value="2x4" data-sq="8" data-box="2" selected>2 × 4 ફૂટ (600×1200 mm - GVT) - 2 pcs/Box</option>
+            <option value="2.5x5" data-sq="12.5" data-box="2">2.5 × 5 ફૂટ (800×1600 mm) - 2 pcs/Box</option>
+            <option value="4x6" data-sq="24" data-box="1">4 × 6 ફૂટ (1200×1800 mm જમ્બો સ્લેબ)</option>
+            <option value="4x8" data-sq="32" data-box="1">4 × 8 ફૂટ (1200×2400 mm સ્લેબ)</option>
+            <option value="32x32" data-sq="7.11" data-box="3">32 × 32 ઇંચ (800×800 mm)</option>
+          </optgroup>
+          <optgroup label="વોલ ટાઇલ્સ (બાથરૂમ / કિચન)">
+            <option value="1x1.5" data-sq="1.5" data-box="6">12 × 18 ઇંચ (1 × 1.5 ફૂટ) - 6 pcs/Box</option>
+            <option value="1x2" data-sq="2" data-box="5">12 × 24 ઇંચ (1 × 2 ફૂટ) - 5 pcs/Box</option>
+          </optgroup>
+          <optgroup label="પાર્કિંગ અને એલિવેશન">
+            <option value="1x1" data-sq="1" data-box="10">16 × 16 ઇંચ / 1 × 1 ફૂટ હેવી પાર્કિંગ</option>
+          </optgroup>
+        </select>
+      </div>
+      <div>
+        <label>સ્કર્ટીંગ અને વેસ્ટેજ (%)</label>
+        <input type="number" id="tl_wst" value="7" oninput="render()">
+      </div>
+    </div>
   </div>
 
+  <!-- ડ્રોઈંગ ડિસ્પ્લે કન્ટેનર -->
   <div class="card">
-    <div class="canvas-container">
-      <canvas id="drawingCanvas" width="360" height="320"></canvas>
+    <div class="view-toggle">
+      <div class="v-btn active" id="v-plan" onclick="setView('plan')">પ્લાન વ્યૂ (Top View)</div>
+      <div class="v-btn" id="v-cut-v" onclick="setView('cut_v')">વર્ટિકલ સેક્શન (ઊભો કાપ)</div>
+      <div class="v-btn" id="v-cut-h" onclick="setView('cut_h')">હોરિઝોન્ટલ સેક્શન (આડો કાપ)</div>
     </div>
-    <div class="info" id="areaInfo"></div>
-    <button onclick="downloadPlan()">ડ્રોઈંગ ડાઉનલોડ કરો (PNG)</button>
+
+    <div class="canvas-box">
+      <canvas id="cadCanvas" width="350" height="260"></canvas>
+    </div>
+
+    <!-- વિગતવાર રિપોર્ટ ટેબલ -->
+    <div id="detailedReport"></div>
+
+    <button class="btn-action" onclick="downloadImage()">આખું ડ્રોઈંગ સેવ કરો (PNG)</button>
   </div>
 
   <script>
-    let currentView = '2d';
+    let activeModule = 'slab';
+    let currentView = 'plan';
 
-    function switchTab(view) {
-      currentView = view;
-      document.getElementById('tab2d').classList.toggle('active', view === '2d');
-      document.getElementById('tab3d').classList.toggle('active', view === '3d');
-      draw();
+    function selectModule(mod) {
+      activeModule = mod;
+      document.getElementById('mod-slab').style.display = (mod === 'slab') ? 'block' : 'none';
+      document.getElementById('mod-wall').style.display = (mod === 'wall') ? 'block' : 'none';
+      document.getElementById('mod-tiles').style.display = (mod === 'tiles') ? 'block' : 'none';
+
+      document.getElementById('btn-slab').classList.toggle('active', mod === 'slab');
+      document.getElementById('btn-wall').classList.toggle('active', mod === 'wall');
+      document.getElementById('btn-tiles').classList.toggle('active', mod === 'tiles');
+
+      render();
     }
 
-    function draw() {
-      const canvas = document.getElementById('drawingCanvas');
+    function setView(view) {
+      currentView = view;
+      document.getElementById('v-plan').classList.toggle('active', view === 'plan');
+      document.getElementById('v-cut-v').classList.toggle('active', view === 'cut_v');
+      document.getElementById('v-cut-h').classList.toggle('active', view === 'cut_h');
+      render();
+    }
+
+    function toggleSlabInputs() {
+      const sh = document.getElementById('sl_shape').value;
+      document.getElementById('l_inputs').style.display = (sh === 'l_shape') ? 'grid' : 'none';
+    }
+
+    // ડ્રોઈંગ અને કેલ્ક્યુલેશન એન્જિન
+    function render() {
+      const canvas = document.getElementById('cadCanvas');
       const ctx = canvas.getContext('2d');
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      const L = parseFloat(document.getElementById('len').value) || 1;
-      const W = parseFloat(document.getElementById('wid').value) || 1;
-      const H = parseFloat(document.getElementById('hgt').value) || 1;
-      const wall = parseFloat(document.getElementById('wall').value) || 0;
-      const unit = document.getElementById('unit').value;
+      if (activeModule === 'slab') {
+        processSlab(ctx, canvas);
+      } else if (activeModule === 'wall') {
+        processWall(ctx, canvas);
+      } else if (activeModule === 'tiles') {
+        processTiles(ctx, canvas);
+      }
+    }
 
-      // ક્ષેત્રફળ અને ઇન્ટર્નલ માપ ગણતરી
-      const internalL = Math.max(0, L - (wall * 2));
-      const internalW = Math.max(0, W - (wall * 2));
-      const carpetArea = (internalL * internalW).toFixed(2);
-      const builtupArea = (L * W).toFixed(2);
+    /* ૧. સ્લેબ કેલ્ક્યુલેશન અને ડ્રોઈંગ */
+    function processSlab(ctx, canvas) {
+      const shape = document.getElementById('sl_shape').value;
+      const L = parseFloat(document.getElementById('sl_len').value) || 1;
+      const W = parseFloat(document.getElementById('sl_wid').value) || 1;
+      const T = parseFloat(document.getElementById('sl_thk').value) || 5;
+      const H = parseFloat(document.getElementById('sl_hgt').value) || 10;
+      const shuttering = document.getElementById('sl_shuttering').value;
+      
+      const barMain = parseInt(document.getElementById('sl_bar_main').value);
+      const barDist = parseInt(document.getElementById('sl_bar_dist').value);
+      const spacing = parseInt(document.getElementById('sl_spacing').value);
 
-      document.getElementById('areaInfo').innerText = 
-        `બિલ્ટ-અપ: ${builtupArea} ચો. ${unit} | કાર્પેટ: ${carpetArea} ચો. ${unit} (ઇન્ટર્નલ: ${internalL.toFixed(1)} × ${internalW.toFixed(1)} ${unit})`;
+      const colSize = document.getElementById('col_size').value;
+      const colBar = parseInt(document.getElementById('col_bar').value);
+      const bmSize = document.getElementById('bm_size').value;
+      const bmBar = parseInt(document.getElementById('bm_bar').value);
 
-      if (currentView === '2d') {
-        render2D(ctx, canvas, L, W, wall, unit, internalL, internalW);
+      // લેપિંગ લંબાઈ (50 × Dia)
+      const slabLap = ((50 * barMain) / 25.4).toFixed(1); // ઇંચ
+      const colLap = ((50 * colBar) / 25.4).toFixed(1);
+      const bmLap = ((50 * bmBar) / 25.4).toFixed(1);
+      document.getElementById('lap_info').value = `કોલમ: ${colLap}" | બીમ: ${bmLap}" | સ્લેબ: ${slabLap}"`;
+
+      let slabArea = 0;
+      if (shape === 'rect') {
+        slabArea = L * W;
+      } else if (shape === 'l_shape') {
+        const cL = parseFloat(document.getElementById('sl_l_cut_len').value) || 0;
+        const cW = parseFloat(document.getElementById('sl_l_cut_wid').value) || 0;
+        slabArea = (L * W) - (cL * cW);
+      } else if (shape === 'round') {
+        const r = L / 2;
+        slabArea = Math.PI * r * r;
+      }
+
+      const concreteCft = (slabArea * (T / 12)).toFixed(1);
+      const brass = (concreteCft / 100).toFixed(2);
+      // સ્ટીલ વજન અંદાજ (સ્લેબ + બીમ સહિત ~3.5 kg/Sq.Ft)
+      const estSteelKg = Math.round(slabArea * 3.6);
+
+      // ટેબલ રિપોર્ટ
+      document.getElementById('detailedReport').innerHTML = `
+        <table class="report-table">
+          <tr><th>વિગત</th><th>માપ / ગણતરી</th><th>યુનિટ</th></tr>
+          <tr><td>સ્લેબ ક્ષેત્રફળ (${shape})</td><td>${slabArea.toFixed(1)}</td><td>ચોરસ ફૂટ</td></tr>
+          <tr><td>RCC કોંક્રિટ વોલ્યુમ</td><td>${concreteCft} CFT (${brass} બ્રાસ)</td><td>જાડાઈ: ${T}"</td></tr>
+          <tr><td>સેન્ટ્રિંગ પદ્ધતિ</td><td>${shuttering === 'iron' ? 'લોખંડ ફાર્મા + લાકડા ટેકા' : 'પ્લાયવુડ + સ્ટીલ જેક'}</td><td>લેવલ: ${H} ft</td></tr>
+          <tr><td>જાળી સ્પેસિંગ & સ્ટીલ</td><td>${barMain}mm × ${barDist}mm @ ${spacing}" C/C</td><td>~${estSteelKg} kg સ્ટીલ</td></tr>
+          <tr><td>કોલમ & બીમ લટક</td><td>Col: ${colSize} (${colBar}mm) | Bm: ${bmSize}</td><td>લેપિંગ: 50D</td></tr>
+        </table>
+        <div class="badge-total">કુલ સ્લેબ સેન્ટ્રિંગ ક્ષેત્રફળ: ${slabArea.toFixed(1)} ચોરસ ફૂટ</div>
+      `;
+
+      // ડ્રોઈંગ લોજિક
+      if (currentView === 'plan') {
+        drawSlabPlan(ctx, canvas, shape, L, W);
+      } else if (currentView === 'cut_v') {
+        drawVerticalSection(ctx, canvas, L, H, T, bmSize);
       } else {
-        render3D(ctx, canvas, L, W, H, unit);
+        drawHorizontalSection(ctx, canvas, L, W, barMain, spacing);
       }
     }
 
-    function render2D(ctx, canvas, L, W, wall, unit, intL, intW) {
-      const pad = 45;
-      const scale = Math.min((canvas.width - pad * 2) / L, (canvas.height - pad * 2) / W);
-      const drawW = L * scale;
-      const drawH = W * scale;
-      const startX = (canvas.width - drawW) / 2;
-      const startY = (canvas.height - drawH) / 2;
-      const wallPx = wall * scale;
+    function drawSlabPlan(ctx, canvas, shape, L, W) {
+      const scale = Math.min((canvas.width - 60) / L, (canvas.height - 60) / W);
+      const dL = L * scale;
+      const dW = W * scale;
+      const ox = (canvas.width - dL) / 2;
+      const oy = (canvas.height - dW) / 2;
 
-      // આઉટર દીવાલ
-      ctx.fillStyle = '#cbd5e1';
-      ctx.fillRect(startX, startY, drawW, drawH);
-      ctx.strokeStyle = '#0f172a';
+      ctx.fillStyle = '#e2e8f0';
+      ctx.strokeStyle = '#0284c7';
       ctx.lineWidth = 2;
-      ctx.strokeRect(startX, startY, drawW, drawH);
 
-      // ઇનર રૂમ
-      if (intL > 0 && intW > 0) {
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(startX + wallPx, startY + wallPx, drawW - (wallPx * 2), drawH - (wallPx * 2));
-        ctx.strokeRect(startX + wallPx, startY + wallPx, drawW - (wallPx * 2), drawH - (wallPx * 2));
+      if (shape === 'rect') {
+        ctx.fillRect(ox, oy, dL, dW);
+        ctx.strokeRect(ox, oy, dL, dW);
+        // કોલમ પોઇન્ટ્સ
+        ctx.fillStyle = '#dc2626';
+        ctx.fillRect(ox, oy, 12, 12);
+        ctx.fillRect(ox + dL - 12, oy, 12, 12);
+        ctx.fillRect(ox, oy + dW - 12, 12, 12);
+        ctx.fillRect(ox + dL - 12, oy + dW - 12, 12, 12);
+      } else if (shape === 'l_shape') {
+        const cL = (parseFloat(document.getElementById('sl_l_cut_len').value) || 0) * scale;
+        const cW = (parseFloat(document.getElementById('sl_l_cut_wid').value) || 0) * scale;
+        ctx.beginPath();
+        ctx.moveTo(ox, oy);
+        ctx.lineTo(ox + dL, oy);
+        ctx.lineTo(ox + dL, oy + dW - cW);
+        ctx.lineTo(ox + dL - cL, oy + dW - cW);
+        ctx.lineTo(ox + dL - cL, oy + dW);
+        ctx.lineTo(ox, oy + dW);
+        ctx.closePath();
+        ctx.fill(); ctx.stroke();
+      } else if (shape === 'round') {
+        const r = (dL / 2);
+        ctx.beginPath();
+        ctx.arc(canvas.width / 2, canvas.height / 2, r, 0, Math.PI * 2);
+        ctx.fill(); ctx.stroke();
       }
 
-      // માપ દર્શાવતી લાઈનો
-      ctx.fillStyle = '#0f172a';
-      ctx.font = '12px sans-serif';
-      ctx.textAlign = 'center';
-
-      // લંબાઈ (ઉપર)
-      ctx.fillText(`લંબાઈ: ${L} ${unit}`, canvas.width / 2, startY - 12);
-      ctx.beginPath();
-      ctx.moveTo(startX, startY - 5); ctx.lineTo(startX + drawW, startY - 5);
-      ctx.stroke();
-
-      // પહોળાઈ (જમણે)
-      ctx.save();
-      ctx.translate(startX + drawW + 15, canvas.height / 2);
-      ctx.rotate(Math.PI / 2);
-      ctx.fillText(`પહોળાઈ: ${W} ${unit}`, 0, 0);
-      ctx.restore();
-
-      // ઇન્ટર્નલ માપ ટેક્સ્ટ
-      if (intL > 0 && intW > 0) {
-        ctx.fillStyle = '#2563eb';
-        ctx.font = 'bold 11px sans-serif';
-        ctx.fillText(`અંદરનું માપ: ${intL.toFixed(1)} × ${intW.toFixed(1)}`, canvas.width / 2, canvas.height / 2);
-      }
-    }
-
-    function render3D(ctx, canvas, L, W, H, unit) {
-      const maxDim = Math.max(L, W, H);
-      const scale = 110 / maxDim;
-      const sL = L * scale;
-      const sW = W * scale;
-      const sH = H * scale;
-
-      const originX = canvas.width / 2;
-      const originY = (canvas.height / 2) + (sH / 3);
-
-      // આઇસોમેટ્રિક પ્રોજેક્શન વેક્ટર્સ (30 ડિગ્રી)
-      const cos30 = Math.cos(Math.PI / 6);
-      const sin30 = Math.sin(Math.PI / 6);
-
-      const p0 = { x: originX, y: originY };
-      const p1 = { x: originX + (sL * cos30), y: originY - (sL * sin30) };
-      const p2 = { x: originX - (sW * cos30), y: originY - (sW * sin30) };
-      const p3 = { x: p1.x - (sW * cos30), y: p1.y - (sW * sin30) };
-
-      // ફ્રન્ટ લેફ્ટ ફેસ
-      ctx.fillStyle = '#64748b';
-      ctx.beginPath();
-      ctx.moveTo(p0.x, p0.y); ctx.lineTo(p2.x, p2.y);
-      ctx.lineTo(p2.x, p2.y - sH); ctx.lineTo(p0.x, p0.y - sH);
-      ctx.closePath();
-      ctx.fill(); ctx.stroke();
-
-      // ફ્રન્ટ રાઇટ ફેસ
-      ctx.fillStyle = '#94a3b8';
-      ctx.beginPath();
-      ctx.moveTo(p0.x, p0.y); ctx.lineTo(p1.x, p1.y);
-      ctx.lineTo(p1.x, p1.y - sH); ctx.lineTo(p0.x, p0.y - sH);
-      ctx.closePath();
-      ctx.fill(); ctx.stroke();
-
-      // ટોપ ફેસ (છત)
-      ctx.fillStyle = '#cbd5e1';
-      ctx.beginPath();
-      ctx.moveTo(p0.x, p0.y - sH); ctx.lineTo(p1.x, p1.y - sH);
-      ctx.lineTo(p3.x, p3.y - sH); ctx.lineTo(p2.x, p2.y - sH);
-      ctx.closePath();
-      ctx.fill(); ctx.stroke();
-
-      // માપ લેબલ્સ
       ctx.fillStyle = '#0f172a';
       ctx.font = '11px sans-serif';
-      ctx.fillText(`H: ${H} ${unit}`, p0.x + 5, originY - (sH / 2));
-      ctx.fillText(`L: ${L} ${unit}`, (p0.x + p1.x) / 2 + 10, (p0.y + p1.y) / 2 + 15);
-      ctx.fillText(`W: ${W} ${unit}`, (p0.x + p2.x) / 2 - 25, (p0.y + p2.y) / 2 + 15);
+      ctx.fillText(`પ્લાન ટોપ વ્યૂ: ${L} x ${W} ft`, canvas.width / 2 - 40, canvas.height - 10);
     }
 
-    function downloadPlan() {
+    function drawVerticalSection(ctx, canvas, L, H, T, bmSize) {
+      // વર્ટિકલ કટ વ્યૂ (સ્લેબ + બીમ લટક + ટેકા)
+      ctx.fillStyle = '#94a3b8';
+      // સ્લેબ પટ્ટી
+      ctx.fillRect(30, 60, canvas.width - 60, 16);
+      ctx.strokeStyle = '#0f172a';
+      ctx.strokeRect(30, 60, canvas.width - 60, 16);
+
+      // બીમ લટક
+      ctx.fillStyle = '#475569';
+      ctx.fillRect(60, 76, 30, 35);
+      ctx.strokeRect(60, 76, 30, 35);
+      ctx.fillRect(canvas.width - 90, 76, 30, 35);
+      ctx.strokeRect(canvas.width - 90, 76, 30, 35);
+
+      // સેન્ટ્રિંગ ટેકા (Props)
+      ctx.strokeStyle = '#d97706';
+      ctx.lineWidth = 3;
+      for (let x = 80; x < canvas.width - 80; x += 50) {
+        ctx.beginPath(); ctx.moveTo(x, 76); ctx.lineTo(x, canvas.height - 30); ctx.stroke();
+      }
+
+      ctx.fillStyle = '#0f172a';
+      ctx.font = '11px sans-serif';
+      ctx.fillText(`સ્લેબ જાડાઈ ${T}"`, canvas.width / 2 - 25, 52);
+      ctx.fillText(`બીમ લટક (${bmSize})`, 60, 125);
+      ctx.fillText(`સેન્ટ્રિંગ ઊંચાઈ: ${H} ft`, canvas.width / 2 - 35, canvas.height - 10);
+    }
+
+    function drawHorizontalSection(ctx, canvas, L, W, bar, sp) {
+      // હોરિઝોન્ટલ કટ વ્યૂ (સ્ટીલ જાળી X-Ray વ્યૂ)
+      ctx.fillStyle = '#f8fafc';
+      ctx.fillRect(30, 20, canvas.width - 60, canvas.height - 50);
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(30, 20, canvas.width - 60, canvas.height - 50);
+
+      // સ્ટીલ રોડ જાળી લાઈનો
+      ctx.strokeStyle = '#dc2626'; // મેઈન
+      ctx.lineWidth = 1.5;
+      for (let y = 35; y < canvas.height - 35; y += 18) {
+        ctx.beginPath(); ctx.moveTo(30, y); ctx.lineTo(canvas.width - 30, y); ctx.stroke();
+      }
+      ctx.strokeStyle = '#2563eb'; // ડિસ્ટ્રિ
+      for (let x = 45; x < canvas.width - 30; x += 22) {
+        ctx.beginPath(); ctx.moveTo(x, 20); ctx.lineTo(x, canvas.height - 30); ctx.stroke();
+      }
+
+      ctx.fillStyle = '#0f172a';
+      ctx.font = '11px sans-serif';
+      ctx.fillText(`સ્ટીલ જાળી કટ: મેઈન ${bar}mm @ ${sp}" c/c`, 50, canvas.height - 10);
+    }
+
+    /* ૨. ચણતર, પ્લાસ્ટર અને બારી-બારણાં */
+    function processWall(ctx, canvas) {
+      const L = parseFloat(document.getElementById('wl_len').value) || 1;
+      const H = parseFloat(document.getElementById('wl_hgt').value) || 1;
+      const bType = document.getElementById('wl_brick_type').value;
+      const pType = document.getElementById('wl_plaster_type').value;
+      const chProj = parseFloat(document.getElementById('ch_proj').value);
+
+      // બારી બારણાં કપાત ડેટા (નંગ x W x H)
+      function parseSpec(str) {
+        const p = str.split('x').map(n => parseFloat(n.trim()) || 0);
+        return (p.length === 3) ? (p[0] * p[1] * p[2]) : 0;
+      }
+      const doorSq = parseSpec(document.getElementById('dr_spec').value);
+      const winSq = parseSpec(document.getElementById('wd_spec').value);
+      const totalCut = doorSq + winSq;
+
+      const grossWallArea = L * H;
+      const netWallArea = Math.max(0, grossWallArea - totalCut);
+
+      // ઈંટોની ગણતરી (ડબલ 9" = 12.5 ઈંટ/ચો.ફૂટ, સિંગલ 4.5" = 6.2 ઈંટ)
+      const brickFactor = (bType === 'double') ? 12.5 : 6.2;
+      const totalBricks = Math.round(netWallArea * brickFactor);
+
+      // પ્લાસ્ટર સ્ક્વેરફૂટ
+      const plasterSide = (pType === 'double') ? 2 : 1;
+      const totalPlasterSq = (netWallArea * plasterSide).toFixed(1);
+
+      // છજ્જાનું ક્ષેત્રફળ (બારીની લંબાઈ + 1 ફૂટ ઓવરહેંગ × પ્રોજેક્શન)
+      const winParts = document.getElementById('wd_spec').value.split('x').map(n => parseFloat(n.trim()) || 0);
+      const winCount = winParts[0] || 0;
+      const winW = winParts[1] || 0;
+      const chajjaSq = (winCount * (winW + 1) * chProj).toFixed(1);
+
+      document.getElementById('detailedReport').innerHTML = `
+        <table class="report-table">
+          <tr><th>વિગત</th><th>માપ / ગણતરી</th><th>ચોરસ ફૂટ</th></tr>
+          <tr><td>આખી દિવાલનું ગ્રોસ માપ</td><td>${L} × ${H} ફૂટ</td><td>${grossWallArea} Sq.Ft</td></tr>
+          <tr><td>દરવાજા + બારી કપાત</td><td>દરવાજા: ${doorSq} + બારી: ${winSq}</td><td>-${totalCut} Sq.Ft</td></tr>
+          <tr><td>ચોખ્ખું ચણતર ક્ષેત્રફળ</td><td>${bType === 'double' ? '૯" ડબલ ઈંટ' : '૪.૫" સિંગલ પાર્ટિશન'}</td><td>${netWallArea.toFixed(1)} Sq.Ft</td></tr>
+          <tr><td>જરૂરી ઈંટોની સંખ્યા</td><td>આશરે ઈંટો (લાલ ઈંટ)</td><td><b>${totalBricks} નંગ</b></td></tr>
+          <tr><td>પ્લાસ્ટર સ્ક્વેરફૂટ</td><td>${pType === 'double' ? 'બંને બાજુ પ્લાસ્ટર' : 'એક બાજુ પ્લાસ્ટર'}</td><td>${totalPlasterSq} Sq.Ft</td></tr>
+          <tr><td>બારી છાજલી/છજ્જા ક્ષેત્રફળ</td><td>${winCount} નંગ (${chProj} ફૂટ બહાર)</td><td>${chajjaSq} Sq.Ft</td></tr>
+        </table>
+        <div class="badge-total">ચોખ્ખું ચણતર: ${netWallArea.toFixed(1)} Sq.Ft | પ્લાસ્ટર: ${totalPlasterSq} Sq.Ft</div>
+      `;
+
+      // ડ્રોઈંગ
+      const scale = Math.min((canvas.width - 60) / L, (canvas.height - 60) / H);
+      const dw = L * scale;
+      const dh = H * scale;
+      const ox = (canvas.width - dw) / 2;
+      const oy = (canvas.height - dh) / 2;
+
+      ctx.fillStyle = '#fca5a5';
+      ctx.fillRect(ox, oy, dw, dh);
+      ctx.strokeStyle = '#991b1b';
+      ctx.strokeRect(ox, oy, dw, dh);
+
+      // દરવાજો
+      ctx.fillStyle = '#78350f';
+      ctx.fillRect(ox + dw * 0.15, oy + dh - (dh * 0.7), dw * 0.18, dh * 0.7);
+
+      // બારી અને છજ્જો
+      const winX = ox + dw * 0.55;
+      const winY = oy + dh * 0.3;
+      const winW_d = dw * 0.25;
+      const winH_d = dh * 0.4;
+      ctx.fillStyle = '#38bdf8';
+      ctx.fillRect(winX, winY, winW_d, winH_d);
+      ctx.strokeRect(winX, winY, winW_d, winH_d);
+
+      // છજ્જો (ઉપર લટક)
+      ctx.fillStyle = '#475569';
+      ctx.fillRect(winX - 6, winY - 10, winW_d + 12, 10);
+
+      ctx.fillStyle = '#0f172a';
+      ctx.font = '10px sans-serif';
+      ctx.fillText('છજ્જો', winX + 5, winY - 13);
+      ctx.fillText('બારી', winX + 8, winY + 20);
+      ctx.fillText('દરવાજો', ox + dw * 0.16, oy + dh - 15);
+    }
+
+    /* ૩. ટાઇલ્સ (અમદાવાદ સાઇઝ માર્કેટ) */
+    function processTiles(ctx, canvas) {
+      const L = parseFloat(document.getElementById('tl_len').value) || 1;
+      const W = parseFloat(document.getElementById('tl_wid').value) || 1;
+      const sel = document.getElementById('tl_size');
+      const tileSq = parseFloat(sel.options[sel.selectedIndex].getAttribute('data-sq'));
+      const pcsPerBox = parseInt(sel.options[sel.selectedIndex].getAttribute('data-box'));
+      const wst = parseFloat(document.getElementById('tl_wst').value) || 0;
+
+      const roomSqFt = L * W;
+      // સ્કર્ટિંગ (રૂમની ચારેય બાજુની લંબાઈ × 4 ઇંચ ઊંચાઈ)
+      const skirtingSqFt = ((L + W) * 2 * (4 / 12)).toFixed(1);
+      const totalTileAreaReq = (roomSqFt + parseFloat(skirtingSqFt)) * (1 + (wst / 100));
+
+      const totalTiles = Math.ceil(totalTileAreaReq / tileSq);
+      const totalBoxes = Math.ceil(totalTiles / pcsPerBox);
+
+      document.getElementById('detailedReport').innerHTML = `
+        <table class="report-table">
+          <tr><th>વિગત</th><th>માપ / ગણતરી</th><th>ચોરસ ફૂટ</th></tr>
+          <tr><td>ફ્લોરિંગ મુખ્ય વિસ્તાર</td><td>${L} × ${W} ફૂટ</td><td>${roomSqFt.toFixed(1)} Sq.Ft</td></tr>
+          <tr><td>સ્કર્ટિંગ વિસ્તાર (૪" પટ્ટી)</td><td>પેરીમીટર: ${((L+W)*2)} રનિંગ ફૂટ</td><td>${skirtingSqFt} Sq.Ft</td></tr>
+          <tr><td>કુલ ક્ષેત્રફળ (+${wst}% વેસ્ટેજ)</td><td>કટિંગ અને તૂટફૂટ ગણતરી</td><td><b>${totalTileAreaReq.toFixed(1)} Sq.Ft</b></td></tr>
+          <tr><td>પસંદ કરેલ ટાઇલ્સ સાઇઝ</td><td>${sel.options[sel.selectedIndex].text}</td><td>1 ટાઇલ્સ = ${tileSq} Sq.Ft</td></tr>
+          <tr><td>જરૂરી ટાઇલ્સ અને બોક્સ</td><td><b>${totalTiles} નંગ ટાઇલ્સ</b></td><td><b>~${totalBoxes} બોક્સ</b></td></tr>
+        </table>
+        <div class="badge-total">કુલ જરૂરી ટાઇલ્સ એરિયા: ${totalTileAreaReq.toFixed(1)} ચોરસ ફૂટ</div>
+      `;
+
+      // ગ્રીડ પ્રીવ્યૂ
+      const scale = Math.min((canvas.width - 50) / L, (canvas.height - 50) / W);
+      const drawL = L * scale;
+      const drawW = W * scale;
+      const ox = (canvas.width - drawL) / 2;
+      const oy = (canvas.height - drawW) / 2;
+
+      ctx.fillStyle = '#f8fafc';
+      ctx.fillRect(ox, oy, drawL, drawW);
+      ctx.strokeStyle = '#94a3b8';
+      ctx.lineWidth = 1;
+
+      const step = Math.sqrt(tileSq) * scale;
+      for (let x = ox; x <= ox + drawL; x += step) {
+        ctx.beginPath(); ctx.moveTo(x, oy); ctx.lineTo(x, oy + drawW); ctx.stroke();
+      }
+      for (let y = oy; y <= oy + drawW; y += step) {
+        ctx.beginPath(); ctx.moveTo(ox, y); ctx.lineTo(ox + drawL, y); ctx.stroke();
+      }
+      ctx.strokeStyle = '#0284c7';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(ox, oy, drawL, drawW);
+    }
+
+    function downloadImage() {
       const link = document.createElement('a');
-      link.download = 'measurement-drawing.png';
-      link.href = document.getElementById('drawingCanvas').toDataURL();
+      link.download = `Mahadev-Drawing-${activeModule}-${currentView}.png`;
+      link.href = document.getElementById('cadCanvas').toDataURL();
       link.click();
     }
 
-    // સર્વિસ વર્કર રજીસ્ટ્રેશન
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js');
-    }
-
-    window.onload = draw;
+    // શરૂઆત સ્લેબથી થશે
+    window.onload = function() {
+      selectModule('slab');
+    };
   </script>
 </body>
 </html>
