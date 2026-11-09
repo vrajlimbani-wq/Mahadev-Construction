@@ -11,46 +11,40 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
       - name: Set up Java JDK
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Create Web Distribution Folder
-        run: |
-          mkdir -p www
-          cp index.html www/
-          cp manifest.json www/
-          cp sw.js www/
-          if [ -f "logo.png" ]; then cp logo.png www/; fi
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
 
-      - name: Install Capacitor CLI
+      - name: Prepare Web Assets
+        run: |
+          mkdir -p dist
+          cp -r index.html dist/
+          [ -f manifest.json ] && cp manifest.json dist/ || true
+          [ -f sw.js ] && cp sw.js dist/ || true
+          [ -f logo.png ] && cp logo.png dist/ || true
+
+      - name: Install Dependencies & Setup Capacitor
         run: |
           npm init -y
-          npm install @capacitor/core@latest @capacitor/cli@latest @capacitor/android@latest
-
-      - name: Initialize Capacitor Project
-        run: |
-          npx cap init "Mahadev Construction" "com.mahadev.construction" --web-dir www
-
-      - name: Add Android Platform
-        run: |
+          npm install @capacitor/core @capacitor/cli @capacitor/android
+          npx cap init "Mahadev Construction" "com.mahadev.construction" --web-dir dist
           npx cap add android
 
       - name: Build Debug APK
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug --stacktrace
+          ./gradlew assembleDebug
 
-      - name: Upload APK
+      - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Mahadev-Construction-APK
+          name: Mahadev-Construction-App
           path: android/app/build/outputs/apk/debug/app-debug.apk
