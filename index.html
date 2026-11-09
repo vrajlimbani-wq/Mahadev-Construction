@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ઓટો કેડ & ડ્રોઈંગ જનરેટર</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1e293b">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    body { background: #0f172a; color: #f8fafc; padding: 15px; }
+    .header { text-align: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #334155; }
+    .card { background: #1e293b; border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+    label { font-size: 13px; color: #94a3b8; display: block; margin-bottom: 4px; }
+    input, select { width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: #fff; font-size: 14px; }
+    button { background: #2563eb; color: #fff; border: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; width: 100%; cursor: pointer; margin-top: 10px; }
+    button:hover { background: #1d4ed8; }
+    .tabs { display: flex; gap: 10px; margin-bottom: 10px; }
+    .tab-btn { background: #334155; flex: 1; padding: 8px; border-radius: 6px; text-align: center; cursor: pointer; font-size: 14px; }
+    .tab-btn.active { background: #2563eb; }
+    .canvas-container { background: #ffffff; border-radius: 8px; overflow: hidden; display: flex; justify-content: center; align-items: center; min-height: 320px; position: relative; }
+    canvas { display: block; }
+    .info { font-size: 13px; color: #38bdf8; margin-top: 8px; text-align: center; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h2>ઓટો મેઝરમેન્ટ ડ્રોઈંગ ટૂલ</h2>
+  </div>
+
+  <div class="card">
+    <div class="grid">
+      <div>
+        <label>લંબાઈ (Length)</label>
+        <input type="number" id="len" value="20" step="0.5" oninput="draw()">
+      </div>
+      <div>
+        <label>પહોળાઈ (Width)</label>
+        <input type="number" id="wid" value="15" step="0.5" oninput="draw()">
+      </div>
+      <div>
+        <label>ઊંચાઈ (Height)</label>
+        <input type="number" id="hgt" value="10" step="0.5" oninput="draw()">
+      </div>
+      <div>
+        <label>દિવાલ જાડાઈ (Wall Thk)</label>
+        <input type="number" id="wall" value="0.75" step="0.25" oninput="draw()">
+      </div>
+      <div>
+        <label>યુનિટ (Unit)</label>
+        <select id="unit" onchange="draw()">
+          <option value="ફૂટ">ફૂટ (Feet)</option>
+          <option value="મીટર">મીટર (Meter)</option>
+          <option value="ઇંચ">ઇંચ (Inch)</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab-btn active" id="tab2d" onclick="switchTab('2d')">2D ફ્લોર પ્લાન (ટોપ વ્યૂ)</div>
+    <div class="tab-btn" id="tab3d" onclick="switchTab('3d')">3D આઇસોમેટ્રિક વ્યૂ</div>
+  </div>
+
+  <div class="card">
+    <div class="canvas-container">
+      <canvas id="drawingCanvas" width="360" height="320"></canvas>
+    </div>
+    <div class="info" id="areaInfo"></div>
+    <button onclick="downloadPlan()">ડ્રોઈંગ ડાઉનલોડ કરો (PNG)</button>
+  </div>
+
+  <script>
+    let currentView = '2d';
+
+    function switchTab(view) {
+      currentView = view;
+      document.getElementById('tab2d').classList.toggle('active', view === '2d');
+      document.getElementById('tab3d').classList.toggle('active', view === '3d');
+      draw();
+    }
+
+    function draw() {
+      const canvas = document.getElementById('drawingCanvas');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const L = parseFloat(document.getElementById('len').value) || 1;
+      const W = parseFloat(document.getElementById('wid').value) || 1;
+      const H = parseFloat(document.getElementById('hgt').value) || 1;
+      const wall = parseFloat(document.getElementById('wall').value) || 0;
+      const unit = document.getElementById('unit').value;
+
+      // ક્ષેત્રફળ અને ઇન્ટર્નલ માપ ગણતરી
+      const internalL = Math.max(0, L - (wall * 2));
+      const internalW = Math.max(0, W - (wall * 2));
+      const carpetArea = (internalL * internalW).toFixed(2);
+      const builtupArea = (L * W).toFixed(2);
+
+      document.getElementById('areaInfo').innerText = 
+        `બિલ્ટ-અપ: ${builtupArea} ચો. ${unit} | કાર્પેટ: ${carpetArea} ચો. ${unit} (ઇન્ટર્નલ: ${internalL.toFixed(1)} × ${internalW.toFixed(1)} ${unit})`;
+
+      if (currentView === '2d') {
+        render2D(ctx, canvas, L, W, wall, unit, internalL, internalW);
+      } else {
+        render3D(ctx, canvas, L, W, H, unit);
+      }
+    }
+
+    function render2D(ctx, canvas, L, W, wall, unit, intL, intW) {
+      const pad = 45;
+      const scale = Math.min((canvas.width - pad * 2) / L, (canvas.height - pad * 2) / W);
+      const drawW = L * scale;
+      const drawH = W * scale;
+      const startX = (canvas.width - drawW) / 2;
+      const startY = (canvas.height - drawH) / 2;
+      const wallPx = wall * scale;
+
+      // આઉટર દીવાલ
+      ctx.fillStyle = '#cbd5e1';
+      ctx.fillRect(startX, startY, drawW, drawH);
+      ctx.strokeStyle = '#0f172a';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(startX, startY, drawW, drawH);
+
+      // ઇનર રૂમ
+      if (intL > 0 && intW > 0) {
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(startX + wallPx, startY + wallPx, drawW - (wallPx * 2), drawH - (wallPx * 2));
+        ctx.strokeRect(startX + wallPx, startY + wallPx, drawW - (wallPx * 2), drawH - (wallPx * 2));
+      }
+
+      // માપ દર્શાવતી લાઈનો
+      ctx.fillStyle = '#0f172a';
+      ctx.font = '12px sans-serif';
+      ctx.textAlign = 'center';
+
+      // લંબાઈ (ઉપર)
+      ctx.fillText(`લંબાઈ: ${L} ${unit}`, canvas.width / 2, startY - 12);
+      ctx.beginPath();
+      ctx.moveTo(startX, startY - 5); ctx.lineTo(startX + drawW, startY - 5);
+      ctx.stroke();
+
+      // પહોળાઈ (જમણે)
+      ctx.save();
+      ctx.translate(startX + drawW + 15, canvas.height / 2);
+      ctx.rotate(Math.PI / 2);
+      ctx.fillText(`પહોળાઈ: ${W} ${unit}`, 0, 0);
+      ctx.restore();
+
+      // ઇન્ટર્નલ માપ ટેક્સ્ટ
+      if (intL > 0 && intW > 0) {
+        ctx.fillStyle = '#2563eb';
+        ctx.font = 'bold 11px sans-serif';
+        ctx.fillText(`અંદરનું માપ: ${intL.toFixed(1)} × ${intW.toFixed(1)}`, canvas.width / 2, canvas.height / 2);
+      }
+    }
+
+    function render3D(ctx, canvas, L, W, H, unit) {
+      const maxDim = Math.max(L, W, H);
+      const scale = 110 / maxDim;
+      const sL = L * scale;
+      const sW = W * scale;
+      const sH = H * scale;
+
+      const originX = canvas.width / 2;
+      const originY = (canvas.height / 2) + (sH / 3);
+
+      // આઇસોમેટ્રિક પ્રોજેક્શન વેક્ટર્સ (30 ડિગ્રી)
+      const cos30 = Math.cos(Math.PI / 6);
+      const sin30 = Math.sin(Math.PI / 6);
+
+      const p0 = { x: originX, y: originY };
+      const p1 = { x: originX + (sL * cos30), y: originY - (sL * sin30) };
+      const p2 = { x: originX - (sW * cos30), y: originY - (sW * sin30) };
+      const p3 = { x: p1.x - (sW * cos30), y: p1.y - (sW * sin30) };
+
+      // ફ્રન્ટ લેફ્ટ ફેસ
+      ctx.fillStyle = '#64748b';
+      ctx.beginPath();
+      ctx.moveTo(p0.x, p0.y); ctx.lineTo(p2.x, p2.y);
+      ctx.lineTo(p2.x, p2.y - sH); ctx.lineTo(p0.x, p0.y - sH);
+      ctx.closePath();
+      ctx.fill(); ctx.stroke();
+
+      // ફ્રન્ટ રાઇટ ફેસ
+      ctx.fillStyle = '#94a3b8';
+      ctx.beginPath();
+      ctx.moveTo(p0.x, p0.y); ctx.lineTo(p1.x, p1.y);
+      ctx.lineTo(p1.x, p1.y - sH); ctx.lineTo(p0.x, p0.y - sH);
+      ctx.closePath();
+      ctx.fill(); ctx.stroke();
+
+      // ટોપ ફેસ (છત)
+      ctx.fillStyle = '#cbd5e1';
+      ctx.beginPath();
+      ctx.moveTo(p0.x, p0.y - sH); ctx.lineTo(p1.x, p1.y - sH);
+      ctx.lineTo(p3.x, p3.y - sH); ctx.lineTo(p2.x, p2.y - sH);
+      ctx.closePath();
+      ctx.fill(); ctx.stroke();
+
+      // માપ લેબલ્સ
+      ctx.fillStyle = '#0f172a';
+      ctx.font = '11px sans-serif';
+      ctx.fillText(`H: ${H} ${unit}`, p0.x + 5, originY - (sH / 2));
+      ctx.fillText(`L: ${L} ${unit}`, (p0.x + p1.x) / 2 + 10, (p0.y + p1.y) / 2 + 15);
+      ctx.fillText(`W: ${W} ${unit}`, (p0.x + p2.x) / 2 - 25, (p0.y + p2.y) / 2 + 15);
+    }
+
+    function downloadPlan() {
+      const link = document.createElement('a');
+      link.download = 'measurement-drawing.png';
+      link.href = document.getElementById('drawingCanvas').toDataURL();
+      link.click();
+    }
+
+    // સર્વિસ વર્કર રજીસ્ટ્રેશન
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js');
+    }
+
+    window.onload = draw;
+  </script>
+</body>
+</html>
